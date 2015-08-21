@@ -1950,12 +1950,27 @@ Meteor.methods({
 Meteor.isClient && Meteor.methods({
   inconsistentStubAsync(arg) {
     return Promise.resolve(arg + " from stub");
+  },
+
+  stubThrowsAsync(arg) {
+    const error = new Meteor.Error(arg + " from stub");
+    error.expected = true;
+    throw error;
   }
 });
 
 Meteor.isServer && Meteor.methods({
   inconsistentStubAsync(arg) {
     return Promise.resolve(arg + " from server");
+  },
+
+  stubThrowsAsync(arg) {
+    return new Promise(
+      resolve => setTimeout(
+        () => resolve(arg + " after setTimeout"),
+        10
+      )
+    ).then(result => result + " from server");
   }
 });
 
@@ -1984,6 +1999,13 @@ Tinytest.addAsync("livedata stub - callAsync", (test, onComplete) => {
     Meteor.applyAsync("inconsistentStubAsync", ["applyAsync"], {
       returnStubValue: true
     }),
+
+    Meteor.callAsync(
+      "stubThrowsAsync", "exceptional stub"
+    ).catch(error => error.message),
+    Meteor.applyAsync("stubThrowsAsync", ["exceptional stub"], {
+      throwStubExceptions: false
+    })
   ]).then(results => {
     test.equal(results, [
       "call resolved",
@@ -1999,7 +2021,12 @@ Tinytest.addAsync("livedata stub - callAsync", (test, onComplete) => {
       "callAsync from server",
       "applyAsync from " + (
         Meteor.isServer ? "server" : "stub"
-      )
+      ),
+
+      Meteor.isClient
+        ? "[exceptional stub from stub]"
+        : "exceptional stub after setTimeout from server",
+      "exceptional stub after setTimeout from server"
     ]);
 
     onComplete();
