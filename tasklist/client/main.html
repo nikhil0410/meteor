@@ -1,0 +1,63 @@
+<head>
+  <title>Discussion room</title>
+</head>
+
+<body>
+<div class="container">
+<header>
+
+    <h1>Discussion About New Technologies</h1>
+  
+    {{> loginButtons}}
+
+</header>
+    <div>
+        <header>
+        {{#if currentUser}}
+            
+            <label class="hide-finished">
+                <input type="checkbox" checked="{{hideFinished}}"/>
+                Hide
+            </label>
+            
+            <form class="new-resolution">
+                <textarea name="title" cols="100" rows="10" placeholder="Join the Discussion..."></textarea> 
+                <input type="submit" name="Submit">
+            </form>
+            {{/if}}
+        </header>
+        <ul>{{#each resolutions}}
+            {{> resolution}}
+            {{/each}}
+        </ul>
+    </div>
+
+    
+ </div>
+</body>
+
+<template name="resolution">
+    <li>
+    {{#if isOwner}}
+        <input type="checkbox" checked="{{checked}}" class="toggle-checked"/>
+            <button class="toggle-private">
+                {{#if private}}
+                    Private
+                {{else}}
+                    Public
+                {{/if}}
+            </button>
+        {{/if}}
+        <span class="text">{{title}}</span>
+        <div>
+        {{#if isOwner}}
+        <button class="delete">Remove</button>
+        {{/if}}
+        <div class="name">
+       by {{username.profile.name}}{{username.username}}
+       </div>
+       </div>
+    </li>
+ 
+</template>
+
